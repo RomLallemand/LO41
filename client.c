@@ -9,9 +9,12 @@
 #include <sys/sem.h>
 #include <unistd.h>
 
-int numClient;
-int etageDepart;
-int etageArrive;
+struct Client{
+	int numClient;
+	int etageDepart;
+	int etageArrive;
+
+}
 
 void generateClient(int scenario, int nombre, int typeRandom){
 
@@ -25,8 +28,13 @@ void generateClient(int scenario, int nombre, int typeRandom){
 
 //fonction client
 
-int choixAssenceur(){}
-void appelAssenceur(int numAssenceur){}
+int choixAscenseur(){}
+
+void appelAscenseur(int numAscenseur){}
+
+//la fonction qui permet de sortir de l'ascenseur et est appelé quand l'ascenseur fait si=ont broadcast
+void sortirAscenseur(){}
 
 // pour le thread
+
 void * client(void * args){}
