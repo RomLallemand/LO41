@@ -9,20 +9,46 @@
 #include <sys/sem.h>
 #include <unistd.h>
 
+typedef struct MessageEtage MessageEtage;
+struct MessageEtage{
+	int type;
+	int etage;
+};
 
+typedef struct Ascenseur Ascenseur;
 struct Ascenseur{
-	int numAssenceur;
+	int numAscenseur;
 	int etat;// 0: en attente 1: monte 2: descend 3: en panne
 	int etageActuel;//0 à 24
-	int capacitee;
+	int capacite;
 	int queueEtageAppel[100];
 	int liste_etage_arrive[100];
 };
 
+//la fonction ascenseur qui sera lancée pour créer un thread
+void * ascenseur(void * args){
+
+
+}
+
 
 //genere les assenceurs avec les semaphores et mutex
 void genererAscenseur(int nombre){
-
+	int i;
+	Ascenseur* ascenseurs;
+	ascenseurs=malloc(nombre*sizeof(Ascenseur));
+	for(i=0;i<nombre;i++){
+		ascenseurs[i].numAscenseur=0;
+		ascenseurs[i].etat=0;
+		ascenseurs[i].etageActuel=0;
+		ascenseurs[i].capacite=10;
+		//ascenseurs[i].queueEtageAppel=NULL;
+		//ascenseurs[i].liste_etage_arrive=NULL;
+	}
+	pthread_t thr[nombre];
+	for(i=0;i<nombre;i++){
+		if(pthread_create(&thr,NULL,ascenseur,(void*) ascenseurs));
+	}
 
 }
 
@@ -30,10 +56,33 @@ void genererAscenseur(int nombre){
 
 
 
-void appelerReaparateur(){}
+void appelerReparateur(){
+}
 
 //lorsque l'ascenseur arrive il "broadcast" je suis à étage X et les clients qui veulent sortir le font et broadcast pour les clients qui attendent sur le palier
-void signalArriveeEtage(){}
+void signalArriveeEtage(int num){
+	int msgid;
+	key_t key;
+
+	MessageEtage msg;
+	msg.type=1;
+	msg.etage=num;
+
+	if ((key = ftok(NULL, 'A')) == -1) {
+		perror("Erreur de creation de la clé \n");
+		exit(1);
+	}
+
+	if ((msgid = msgget(key, 0750 | IPC_CREAT | IPC_EXCL)) == -1) {
+		perror("Erreur de creation de la file\n");
+		exit(1);
+	}
+
+	if (msgsnd(msgid, &msg, sizeof(MessageEtage) - 4,0) == -1) {
+	  perror("Erreur d'envoi requete \n");
+		exit(1);
+	}
+}
 
 void voyage(){
 //while true
@@ -52,12 +101,5 @@ void voyage(){
 	//sinon attente a etage actuel
 
 //fin while
-
-}
-
-
-//la fonction ascenseur qui sera lancée pour créer un thread
-void * ascenseur(void * args){
-
 
 }
