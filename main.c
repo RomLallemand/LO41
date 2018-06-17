@@ -13,6 +13,19 @@
 #include <unistd.h>
 
 
-void main(){
-  genererAscenseur(3); 
+int main(int argc,char* argv[]){
+  if (argc-1 != 1) {
+    fprintf(stderr,"Appel : %s <nombre ascenseurs souhaités>\n",argv[1]);
+    return 1;
+  }
+  int nbA=atoi(argv[1]);
+
+
+
+
+  genererAscenseur(nbA);
+
+  while(1){} // sinon on ne voit pas l'affichage de l'ascenseur
+
+  return 1;
 }
