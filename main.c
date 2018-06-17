@@ -1,6 +1,6 @@
 //main.c
 
-#include "client.c"
+/*#include "client.c"*/
 #include "ascenseur.c"
 
 #include <stdio.h>
@@ -14,5 +14,5 @@
 
 
 void main(){
-
+  genererAscenseur(1); 
 }

@@ -9,26 +9,25 @@
 #include <sys/sem.h>
 #include <unistd.h>
 
-typedef struct MessageEtage MessageEtage;
-struct MessageEtage{
+
+typedef struct MessageEtage{
 	int type;
 	int etage;
-};
+} MessageEtage;
 
-typedef struct Ascenseur Ascenseur;
-struct Ascenseur{
+typedef struct {
 	int numAscenseur;
 	int etat;// 0: en attente 1: monte 2: descend 3: en panne
 	int etageActuel;//0 à 24
 	int capacite;
 	int queueEtageAppel[100];
 	int liste_etage_arrive[100];
-};
+} Ascenseur;
 
 //la fonction ascenseur qui sera lancée pour créer un thread
 void * ascenseur(void * args){
-
-
+	Ascenseur *ascenseur=(Ascenseur *) args;
+	voyage(ascenseur);
 }
 
 
@@ -38,7 +37,7 @@ void genererAscenseur(int nombre){
 	Ascenseur* ascenseurs;
 	ascenseurs=malloc(nombre*sizeof(Ascenseur));
 	for(i=0;i<nombre;i++){
-		ascenseurs[i].numAscenseur=0;
+		ascenseurs[i].numAscenseur=i;
 		ascenseurs[i].etat=0;
 		ascenseurs[i].etageActuel=0;
 		ascenseurs[i].capacite=10;
@@ -47,7 +46,12 @@ void genererAscenseur(int nombre){
 	}
 	pthread_t thr[nombre];
 	for(i=0;i<nombre;i++){
-		if(pthread_create(&thr,NULL,ascenseur,(void*) ascenseurs));
+		if(pthread_create(&thr[i],NULL,ascenseur, &ascenseurs[i]))
+			perror("Erreur création threads ascenseurs");
+	}
+
+	while(1){
+		fprintf(stderr,"dans genererAscenseur\n");
 	}
 
 }
@@ -56,7 +60,7 @@ void genererAscenseur(int nombre){
 
 
 
-void appelerReparateur(){
+void appelerReparateur(Ascenseur* ascenseur){
 }
 
 //lorsque l'ascenseur arrive il "broadcast" je suis à étage X et les clients qui veulent sortir le font et broadcast pour les clients qui attendent sur le palier
@@ -82,9 +86,10 @@ void signalArriveeEtage(int num){
 	  perror("Erreur d'envoi requete \n");
 		exit(1);
 	}
+
 }
 
-void voyage(){
+void voyage(Ascenseur *ascenseur){
 //while true
 	//si non plein
 		//si appel on va chercher client            priorise queueEtageAppel
@@ -102,4 +107,7 @@ void voyage(){
 
 //fin while
 
+	while(1){
+		fprintf(stderr,"ascenseur n°%d voyage\n", ascenseur->numAscenseur);
+	}
 }
