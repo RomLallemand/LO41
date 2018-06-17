@@ -14,5 +14,5 @@
 
 
 void main(){
-  genererAscenseur(1); 
+  genererAscenseur(3); 
 }

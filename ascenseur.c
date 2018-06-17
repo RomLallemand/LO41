@@ -8,6 +8,7 @@
 #include <sys/wait.h>
 #include <sys/sem.h>
 #include <unistd.h>
+#include "Queue.c";
 
 
 typedef struct MessageEtage{
@@ -20,7 +21,8 @@ typedef struct {
 	int etat;// 0: en attente 1: monte 2: descend 3: en panne
 	int etageActuel;//0 à 24
 	int capacite;
-	int queueEtageAppel[100];
+	/*int queueEtageAppel[100];*/
+	Queue *queueEtageAppel;
 	int liste_etage_arrive[100];
 } Ascenseur;
 
@@ -41,8 +43,13 @@ void genererAscenseur(int nombre){
 		ascenseurs[i].etat=0;
 		ascenseurs[i].etageActuel=0;
 		ascenseurs[i].capacite=10;
-		//ascenseurs[i].queueEtageAppel=NULL;
-		//ascenseurs[i].liste_etage_arrive=NULL;
+		ascenseurs[i].queueEtageAppel=createQueue(100);
+		int j;
+		/*for(j=0;j<100;j++)
+			ascenseurs[i].queueEtageAppel[j]=0;*/
+		for(j=0;j<100;j++)
+			ascenseurs[i].liste_etage_arrive[j]=0;
+
 	}
 	pthread_t thr[nombre];
 	for(i=0;i<nombre;i++){
@@ -106,8 +113,11 @@ void voyage(Ascenseur *ascenseur){
 	//sinon attente a etage actuel
 
 //fin while
-
+	Enqueue(ascenseur->queueEtageAppel,0);
+	Enqueue(ascenseur->queueEtageAppel,3);
+	Dequeue(ascenseur->queueEtageAppel);
 	while(1){
-		fprintf(stderr,"ascenseur n°%d voyage\n", ascenseur->numAscenseur);
+		//fprintf(stderr,"ascenseur n°%d voyage\n", ascenseur->numAscenseur);
+		fprintf(stderr,"ascenseur n°%d voyage, front queueEtageAppel=%d\n", ascenseur->numAscenseur,front(ascenseur->queueEtageAppel));
 	}
 }
