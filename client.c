@@ -4,65 +4,98 @@
 #include <stdlib.h>
 #include <sys/types.h>
 #include <sys/ipc.h>
+#include <sys/msg.h>
 #include <sys/shm.h>
 #include <sys/wait.h>
 #include <sys/sem.h>
 #include <unistd.h>
+#include <pthread.h>
+
 
 typedef struct {
-	int type;
-	int etage;
-} MessageEtageDemande;
-
-struct Client{
 	int numClient;
 	int etageDepart;
 	int etageArrive;
-}
+	int msgid;
+} Client;
 
-void generateClient(int scenario, int nombre, int typeRandom){
 
-	switch(scenario){
-		case 1://
-		break;
-		default://case completement aléatoire on prend en compte nombre et typeRandom
-		break;
-	}
-}
+
+
 
 //fonction client
 
 int choixAscenseur(){
-	
+
 }
 
-void appelAscenseur(int numAscenseur){
-	int msgid;
-	key_t key;
+void appelAscenseur(Client* c){
+printf("dasn appel\n");
 
 	MessageEtageDemande msg;
 	msg.type=2;
-	msg.etage=num;
+	msg.etageDemande=c->etageArrive;
+	msg.etageAppuiBtn=c->etageDepart;
 
-	if ((key = ftok(NULL, 'A')) == -1) {
-		perror("Erreur de creation de la clé \n");
-		exit(1);
-	}
 
-	if ((msgid = msgget(key, 0750 | IPC_CREAT | IPC_EXCL)) == -1) {
-		perror("Erreur de creation de la file\n");
-		exit(1);
-	}
-
-	if (msgsnd(msgid, &msg, sizeof(MessageEtage) - 4,0) == -1) {
+	if (msgsnd(c->msgid, &msg, sizeof(MessageEtageDemande) - 4,0) == -1) {
 	  perror("Erreur d'envoi requete \n");
 		exit(1);
 	}
 }
 
-//la fonction qui permet de sortir de l'ascenseur et est appelé quand l'ascenseur fait si=ont broadcast
+//la fonction qui permet de sortir de l'ascenseur et est appelé quand l'ascenseur fait sont broadcast
 void sortirAscenseur(){}
+
+
+
+
 
 // pour le thread
 
-void * client(void * args){}
+void * client(void * args){
+	Client *client=(Client *) args;
+	appelAscenseur(client);
+	//dort
+	//il est réveillé
+	//entre dans ascenseur
+	//dort
+	usleep(10000000);
+	//il est réveillé
+	sortirAscenseur();
+
+}
+
+
+void generateClient(int scenario, int nombre, int typeRandom, int msgid){
+
+
+
+	switch(scenario){
+		case 1:
+				{
+					Client* clients;
+					clients=malloc(nombre*sizeof(Client));
+					for(int i=0;i<nombre;i++){
+						clients[i].numClient=i+1;
+						clients[i].etageDepart=0;
+						clients[i].etageArrive=2;
+						clients[i].msgid=msgid;
+					}
+					pthread_t thr[nombre];
+					for(int i=0;i<nombre;i++){
+						if(pthread_create(&thr[i],NULL,client, &clients[i]))
+							perror("Erreur création threads clients");
+					}
+					//for(int i=0;i<nombre;i++){
+					//	if(pthread_join(&thr[i],NULL))
+					//		perror("Erreur lors du join des threads client");
+					//}
+
+					free(clients);
+				}
+				break;
+		default://case completement aléatoire on prend en compte nombre et typeRandom
+				break;
+	}
+}

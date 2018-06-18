@@ -4,17 +4,17 @@
 #include <stdlib.h>
 #include <sys/types.h>
 #include <sys/ipc.h>
+#include <sys/msg.h>
 #include <sys/shm.h>
 #include <sys/wait.h>
 #include <sys/sem.h>
 #include <unistd.h>
-#include "Queue.c";
+#include "Queue.c"
+#include <pthread.h>
+
+
 #define CAPACITE 10
 
-typedef struct {
-	int type;
-	int etage;
-} MessageEtage;
 
 typedef struct {
 	int numAscenseur;
@@ -25,6 +25,7 @@ typedef struct {
 	Queue *queueEtageAppel;
 	int nbDemandes;
 	int liste_etage_arrive[CAPACITE];
+	int msgid;
 } Ascenseur;
 
 
@@ -32,11 +33,10 @@ typedef struct {
 
 
 
-
-void genererAscenseur(int);
+void genererAscenseur(int,int);
 void* ascenseur(void*);
 void appelerReparateur(Ascenseur*);
-void signalArriveeEtage(int);
+void signalArriveeEtage(Ascenseur*);
 void voyage(Ascenseur*);
 
 
@@ -52,7 +52,7 @@ void * ascenseur(void * args){
 
 
 //genere les ascenseurs avec les semaphores et mutex
-void genererAscenseur(int nombre){
+void genererAscenseur(int nombre,int msgid){
 	int i,j;
 	Ascenseur* ascenseurs;
 	ascenseurs=malloc(nombre*sizeof(Ascenseur));
@@ -63,6 +63,7 @@ void genererAscenseur(int nombre){
 		ascenseurs[i].nbDemandes=0;
 		ascenseurs[i].capacite=CAPACITE;
 		ascenseurs[i].queueEtageAppel=createQueue(100);
+		ascenseurs[i].msgid=msgid;
 		int j;
 		/*for(j=0;j<100;j++)
 			ascenseurs[i].queueEtageAppel[j]=0;*/
@@ -75,43 +76,57 @@ void genererAscenseur(int nombre){
 		if(pthread_create(&thr[i],NULL,ascenseur, &ascenseurs[i]))
 			perror("Erreur création threads ascenseurs");
 	}
+	//for(i=0;i<nombre;i++){
+	//	if(pthread_join(&thr[i],NULL))
+	//		perror("Erreur lors du join des threads ascenseurs");
+	//1}
+
+	free(ascenseurs);
 }
 
 //fonctions des ascenseurs
 
+void verifMessage(Ascenseur *ascenseur){
+	printf("dans rcv\n");
+	//en recupère qu'un seul
+	int i =0;
+	while(i <CAPACITE){
+		MessageEtageDemande rep;
+		if(msgrcv(ascenseur->msgid, &rep, sizeof(MessageEtageDemande) - 4, 2, IPC_NOWAIT)==-1){
+			perror("Erreur réception requete \n");
 
+		}else{
+			ascenseur->nbDemandes++;
+			Enqueue(ascenseur->queueEtageAppel,rep.etageAppuiBtn);
+		}
+		usleep(1000);
+		i++;
+	}
+
+
+}
 
 void appelerReparateur(Ascenseur* ascenseur){
 }
 
 //lorsque l'ascenseur arrive il "broadcast" je suis à étage X et les clients qui veulent sortir le font et broadcast pour les clients qui attendent sur le palier
-void signalArriveeEtage(int numEtage){
-	int msgid;
-	key_t key;
+void signalArriveeEtage(Ascenseur * ascenseur){
 
 	MessageEtage msg;
 	msg.type=1;
-	msg.etage=numEtage;
+	msg.etage=ascenseur->etageActuel;
 
-	if ((key = ftok(NULL, 'A')) == -1) {
-		perror("Erreur de creation de la clé \n");
-		exit(1);
-	}
 
-	if ((msgid = msgget(key, 0750 | IPC_CREAT | IPC_EXCL)) == -1) {
-		perror("Erreur de creation de la file\n");
-		exit(1);
-	}
-
-	if (msgsnd(msgid, &msg, sizeof(MessageEtage) - 4,0) == -1) {
+	if (msgsnd(ascenseur->msgid, &msg, sizeof(MessageEtage) - 4,0) == -1) {
 	  perror("Erreur d'envoi requete \n");
 		exit(1);
 	}
 
 }
 
+
+
 void voyage(Ascenseur *ascenseur){ // IL FAUDRAIT PEUT ETRE SOCCUPER DE RECEVOIR LES DEMANDES A CHAQUE ITERATION DU WHILE ?
-	printf("ici");
 //while true
 	//si non plein
 		//si appel on va chercher client            priorise queueEtageAppel
@@ -129,13 +144,15 @@ void voyage(Ascenseur *ascenseur){ // IL FAUDRAIT PEUT ETRE SOCCUPER DE RECEVOIR
 
 //fin while
 	while(1){
+
 		if(ascenseur->nbDemandes < CAPACITE){ // => si pas plein, suit la queue étages demandés
+			verifMessage(ascenseur);
 			while(ascenseur->nbDemandes==0){
-				fprintf(stderr,"Ascenseur n°%d en attente à l'étage %d | %d/%d\n",ascenseur->numAscenseur,ascenseur->etageActuel,ascenseur->nbDemandes,CAPACITE);
+				//fprintf(stderr,"Ascenseur n°%d en attente à l'étage %d | %d/%d\n",ascenseur->numAscenseur,ascenseur->etageActuel,ascenseur->nbDemandes,CAPACITE);
+
 			}
 			int allerA=front(ascenseur->queueEtageAppel);
 			Dequeue(ascenseur->queueEtageAppel);
-
 		}
 		else if(ascenseur->nbDemandes == CAPACITE){ // => si plein, dépose au premier étage demandé
 			int allerA=front(ascenseur->queueEtageAppel);
@@ -151,8 +168,10 @@ void voyage(Ascenseur *ascenseur){ // IL FAUDRAIT PEUT ETRE SOCCUPER DE RECEVOIR
 				usleep(1000);
 			}
 
-			signalArriveeEtage(ascenseur->etageActuel); // => fera sortir les gens qui veulent sortir, puis rentrer ceux qui attendent à cet étage
+			verifMessage(ascenseur);
+			signalArriveeEtage(ascenseur); // => fera sortir les gens qui veulent sortir, puis rentrer ceux qui attendent à cet étage
 		}
+
 	}
 }
 
