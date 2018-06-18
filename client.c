@@ -16,7 +16,7 @@ typedef struct {
 	int numClient;
 	int etageDepart;
 	int etageArrive;
-	int msgid;
+	int _msgid_;
 } Client;
 
 
@@ -30,16 +30,15 @@ int choixAscenseur(){
 }
 
 void appelAscenseur(Client* c){
-printf("dasn appel\n");
+printf("dans appel\n");
 
 	MessageEtageDemande msg;
 	msg.type=2;
 	msg.etageDemande=c->etageArrive;
 	msg.etageAppuiBtn=c->etageDepart;
 
-
-	if (msgsnd(c->msgid, &msg, sizeof(MessageEtageDemande) - 4,0) == -1) {
-	  perror("Erreur d'envoi requete \n");
+	if (msgsnd(c->_msgid_, &msg, sizeof(MessageEtageDemande) - sizeof(long),0) == -1) {
+	  perror("Erreur d'envoi requete. \n");
 		exit(1);
 	}
 }
@@ -55,6 +54,7 @@ void sortirAscenseur(){}
 
 void * client(void * args){
 	Client *client=(Client *) args;
+	printf("MSGID *CLIENT(args) : %d\n",client->etageArrive); // urgent PB de pointeur
 	appelAscenseur(client);
 	//dort
 	//il est réveillé
@@ -67,8 +67,8 @@ void * client(void * args){
 }
 
 
-void generateClient(int scenario, int nombre, int typeRandom, int msgid){
-
+void generateClient(int scenario, int nombre, int typeRandom, int msgid_){
+printf("MSGID GENERATECLT : %d\n",msgid_);
 
 
 	switch(scenario){
@@ -80,8 +80,9 @@ void generateClient(int scenario, int nombre, int typeRandom, int msgid){
 						clients[i].numClient=i+1;
 						clients[i].etageDepart=0;
 						clients[i].etageArrive=2;
-						clients[i].msgid=msgid;
+						clients[i]._msgid_=msgid_;
 					}
+					printf("MSGID GENERATECLT  test : %d\n",(&clients[0])->_msgid_); //OK bon msgid
 					pthread_t thr[nombre];
 					for(int i=0;i<nombre;i++){
 						if(pthread_create(&thr[i],NULL,client, &clients[i]))

@@ -29,7 +29,7 @@ int main(int argc,char* argv[]){
 
 
   key_t key;
- char *path = "/tmp";
+  char *path = "/tmp";
 
   if (argc-1 != 1) {
     fprintf(stderr,"Appel : %s <nombre ascenseurs souhaités>\n",argv[1]);
@@ -47,10 +47,9 @@ int main(int argc,char* argv[]){
 		exit(1);
 	}
   signal(SIGINT,traitantSIGINT);
-
-
-  genererAscenseur(nbA,msgid);
+  printf("MSGID DANS MAIN : %d\n",msgid);
   generateClient(1,1,0,msgid);
+  genererAscenseur(nbA,msgid);
 
   while(1){} // sinon on ne voit pas l'affichage de l'ascenseur
 

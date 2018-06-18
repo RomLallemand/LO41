@@ -90,19 +90,19 @@ void verifMessage(Ascenseur *ascenseur){
 	printf("dans rcv\n");
 	//en recupère qu'un seul
 	int i =0;
-	while(i <CAPACITE){
+	while(i <1){
 		MessageEtageDemande rep;
-		if(msgrcv(ascenseur->msgid, &rep, sizeof(MessageEtageDemande) - 4, 2, IPC_NOWAIT)==-1){
+		if(msgrcv(ascenseur->msgid, &rep, sizeof(MessageEtageDemande) - sizeof(long), 2, IPC_NOWAIT)==-1){
 			perror("Erreur réception requete \n");
 
-		}else{
-			ascenseur->nbDemandes++;
-			Enqueue(ascenseur->queueEtageAppel,rep.etageAppuiBtn);
 		}
+
+		ascenseur->nbDemandes++;
+		Enqueue(ascenseur->queueEtageAppel,rep.etageAppuiBtn);
+		printf("remplir");
 		usleep(1000);
 		i++;
 	}
-
 
 }
 

@@ -1,11 +1,11 @@
 
 typedef struct {
-	int type;
+	long type;
 	int etageDemande;
 	int etageAppuiBtn;
 } MessageEtageDemande;
 
 typedef struct {
-	int type;
+	long type;
 	int etage;
 } MessageEtage;
