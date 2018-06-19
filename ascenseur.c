@@ -11,7 +11,7 @@
 #include <unistd.h>
 #include "Queue.c"
 #include <pthread.h>
-
+#include <errno.h>
 
 #define CAPACITE 10
 
@@ -33,7 +33,7 @@ typedef struct {
 
 
 
-void genererAscenseur(int,int);
+void genererAscenseur(int);//,int);
 void* ascenseur(void*);
 void appelerReparateur(Ascenseur*);
 void signalArriveeEtage(Ascenseur*);
@@ -47,12 +47,13 @@ void voyage(Ascenseur*);
 //la fonction ascenseur qui sera lancée pour créer un thread
 void * ascenseur(void * args){
 	Ascenseur *ascenseur=(Ascenseur *) args;
+	printf("A %d\n",ascenseur->numAscenseur);
 	voyage(ascenseur);
 }
 
 
 //genere les ascenseurs avec les semaphores et mutex
-void genererAscenseur(int nombre,int msgid){
+void genererAscenseur(int nombre){//,int msgid){
 	int i,j;
 	Ascenseur* ascenseurs;
 	ascenseurs=malloc(nombre*sizeof(Ascenseur));
@@ -87,23 +88,30 @@ void genererAscenseur(int nombre,int msgid){
 //fonctions des ascenseurs
 
 void verifMessage(Ascenseur *ascenseur){
+	
 	printf("dans rcv\n");
 	//en recupère qu'un seul
 	int i =0;
-	while(i <1){
+
+	while(i <CAPACITE){
 		MessageEtageDemande rep;
-		if(msgrcv(ascenseur->msgid, &rep, sizeof(MessageEtageDemande) - sizeof(long), 2, IPC_NOWAIT)==-1){
+		pthread_mutex_lock(&mutexMessage);
+		int m=msgrcv(msgid, &rep, sizeof(MessageEtageDemande) - sizeof(long), 2, IPC_NOWAIT);
+		pthread_mutex_unlock(&mutexMessage);
+		if(m==-1){
 			perror("Erreur réception requete \n");
 
+		}else{
+			printf("res: %ld, %d, %d,\n",rep.type,rep.etageDemande,rep.etageAppuiBtn);
+			ascenseur->nbDemandes++;
+			Enqueue(ascenseur->queueEtageAppel,rep.etageAppuiBtn);
+			printf("remplir\n");
+			
 		}
-
-		ascenseur->nbDemandes++;
-		Enqueue(ascenseur->queueEtageAppel,rep.etageAppuiBtn);
-		printf("remplir");
-		usleep(1000);
 		i++;
+		usleep(1000);	
 	}
-
+	
 }
 
 void appelerReparateur(Ascenseur* ascenseur){
@@ -111,7 +119,7 @@ void appelerReparateur(Ascenseur* ascenseur){
 
 //lorsque l'ascenseur arrive il "broadcast" je suis à étage X et les clients qui veulent sortir le font et broadcast pour les clients qui attendent sur le palier
 void signalArriveeEtage(Ascenseur * ascenseur){
-
+	pthread_mutex_lock(&mutexMessage);
 	MessageEtage msg;
 	msg.type=1;
 	msg.etage=ascenseur->etageActuel;
@@ -121,7 +129,7 @@ void signalArriveeEtage(Ascenseur * ascenseur){
 	  perror("Erreur d'envoi requete \n");
 		exit(1);
 	}
-
+	pthread_mutex_unlock(&mutexMessage);
 }
 
 
@@ -143,20 +151,28 @@ void voyage(Ascenseur *ascenseur){ // IL FAUDRAIT PEUT ETRE SOCCUPER DE RECEVOIR
 	//sinon attente a etage actuel
 
 //fin while
+	
 	while(1){
-
+		int allerA;
+		printf("demandes %d:\n",ascenseur->nbDemandes);
+		
 		if(ascenseur->nbDemandes < CAPACITE){ // => si pas plein, suit la queue étages demandés
 			verifMessage(ascenseur);
 			while(ascenseur->nbDemandes==0){
 				//fprintf(stderr,"Ascenseur n°%d en attente à l'étage %d | %d/%d\n",ascenseur->numAscenseur,ascenseur->etageActuel,ascenseur->nbDemandes,CAPACITE);
 
 			}
-			int allerA=front(ascenseur->queueEtageAppel);
-			Dequeue(ascenseur->queueEtageAppel);
+			if(ascenseur->queueEtageAppel->size !=0){
+				allerA=front(ascenseur->queueEtageAppel);
+				Dequeue(ascenseur->queueEtageAppel);
+			}
+			printf("dest: %d\n",allerA);
 		}
 		else if(ascenseur->nbDemandes == CAPACITE){ // => si plein, dépose au premier étage demandé
-			int allerA=front(ascenseur->queueEtageAppel);
-			Dequeue(ascenseur->queueEtageAppel);
+			if(ascenseur->queueEtageAppel->size !=0){
+				allerA=front(ascenseur->queueEtageAppel);
+				Dequeue(ascenseur->queueEtageAppel);
+			}
 
 			while(ascenseur->etageActuel!=allerA){
 				if(ascenseur->etageActuel<allerA){

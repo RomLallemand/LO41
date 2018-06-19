@@ -11,8 +11,9 @@
 #include <sys/wait.h>
 #include <sys/sem.h>
 #include <unistd.h>
+#include <pthread.h>
 
-  int msgid;
+
 
 void traitantSIGINT(int num) {
 
@@ -48,8 +49,8 @@ int main(int argc,char* argv[]){
 	}
   signal(SIGINT,traitantSIGINT);
   printf("MSGID DANS MAIN : %d\n",msgid);
-  generateClient(1,1,0,msgid);
-  genererAscenseur(nbA,msgid);
+  generateClient(1,1,0);//,msgid);
+  genererAscenseur(nbA);//,msgid);
 
   while(1){} // sinon on ne voit pas l'affichage de l'ascenseur
 

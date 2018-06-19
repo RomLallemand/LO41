@@ -30,17 +30,20 @@ int choixAscenseur(){
 }
 
 void appelAscenseur(Client* c){
-printf("dans appel\n");
+	pthread_mutex_lock(&mutexMessage);
+	printf("dans appel\n");
 
 	MessageEtageDemande msg;
 	msg.type=2;
 	msg.etageDemande=c->etageArrive;
 	msg.etageAppuiBtn=c->etageDepart;
+	printf("msg: %ld, %d, %d,\n",msg.type,msg.etageDemande,msg.etageAppuiBtn);
 
-	if (msgsnd(c->_msgid_, &msg, sizeof(MessageEtageDemande) - sizeof(long),0) == -1) {
+	if (msgsnd(msgid, &msg, sizeof(MessageEtageDemande) - sizeof(long),0) == -1) {
 	  perror("Erreur d'envoi requete. \n");
 		exit(1);
 	}
+	pthread_mutex_unlock(&mutexMessage);
 }
 
 //la fonction qui permet de sortir de l'ascenseur et est appelé quand l'ascenseur fait sont broadcast
@@ -67,8 +70,8 @@ void * client(void * args){
 }
 
 
-void generateClient(int scenario, int nombre, int typeRandom, int msgid_){
-printf("MSGID GENERATECLT : %d\n",msgid_);
+void generateClient(int scenario, int nombre, int typeRandom){//, int msgid_){
+printf("MSGID GENERATECLT : %d\n",msgid);
 
 
 	switch(scenario){
@@ -80,7 +83,7 @@ printf("MSGID GENERATECLT : %d\n",msgid_);
 						clients[i].numClient=i+1;
 						clients[i].etageDepart=0;
 						clients[i].etageArrive=2;
-						clients[i]._msgid_=msgid_;
+						clients[i]._msgid_=msgid;
 					}
 					printf("MSGID GENERATECLT  test : %d\n",(&clients[0])->_msgid_); //OK bon msgid
 					pthread_t thr[nombre];
