@@ -37,7 +37,7 @@ void appelAscenseur(Client* c){
 	msg.type=2;
 	msg.etageDemande=c->etageArrive;
 	msg.etageAppuiBtn=c->etageDepart;
-	printf("msg: %ld, %d, %d,\n",msg.type,msg.etageDemande,msg.etageAppuiBtn);
+	//printf("msg: %ld, %d, %d,\n",msg.type,msg.etageDemande,msg.etageAppuiBtn);
 
 	if (msgsnd(msgid, &msg, sizeof(MessageEtageDemande) - sizeof(long),0) == -1) {
 	  perror("Erreur d'envoi requete. \n");
@@ -57,7 +57,7 @@ void sortirAscenseur(){}
 
 void * client(void * args){
 	Client *client=(Client *) args;
-	printf("MSGID *CLIENT(args) : %d\n",client->_msgid_); // urgent PB de pointeur
+	//printf("MSGID *CLIENT(args) : %d\n",client->_msgid_); // urgent PB de pointeur
 	appelAscenseur(client);
 	//dort
 	//il est réveillé
@@ -85,7 +85,7 @@ printf("MSGID GENERATECLT : %d\n",msgid);
 						clients[i].etageArrive=2;
 						clients[i]._msgid_=msgid;
 					}
-					printf("MSGID GENERATECLT  test : %d\n",(&clients[0])->_msgid_); //OK bon msgid
+					//printf("MSGID GENERATECLT  test : %d\n",(&clients[0])->_msgid_); //OK bon msgid
 					pthread_t thr[nombre];
 					for(int i=0;i<nombre;i++){
 						if(pthread_create(&thr[i],NULL,client, &clients[i]))
@@ -96,7 +96,7 @@ printf("MSGID GENERATECLT : %d\n",msgid);
 					//		perror("Erreur lors du join des threads client");
 					//}
 
-					free(clients);
+					//free(clients);
 				}
 				break;
 		default://case completement aléatoire on prend en compte nombre et typeRandom

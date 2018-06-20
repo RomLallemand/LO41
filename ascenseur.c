@@ -38,6 +38,7 @@ void* ascenseur(void*);
 void appelerReparateur(Ascenseur*);
 void signalArriveeEtage(Ascenseur*);
 void voyage(Ascenseur*);
+void test(Ascenseur*);
 
 
 
@@ -49,6 +50,7 @@ void * ascenseur(void * args){
 	Ascenseur *ascenseur=(Ascenseur *) args;
 	printf("A %d\n",ascenseur->numAscenseur);
 	voyage(ascenseur);
+	//test(ascenseur);
 }
 
 
@@ -57,8 +59,9 @@ void genererAscenseur(int nombre){//,int msgid){
 	int i,j;
 	Ascenseur* ascenseurs;
 	ascenseurs=malloc(nombre*sizeof(Ascenseur));
+	//Ascenseur ascenseurs[nombre];
 	for(i=0;i<nombre;i++){
-		ascenseurs[i].numAscenseur=i+1;
+		ascenseurs[i].numAscenseur=i;
 		ascenseurs[i].etat=0;
 		ascenseurs[i].etageActuel=0;
 		ascenseurs[i].nbDemandes=0;
@@ -82,7 +85,7 @@ void genererAscenseur(int nombre){//,int msgid){
 	//		perror("Erreur lors du join des threads ascenseurs");
 	//1}
 
-	free(ascenseurs);
+	//free(ascenseurs);
 }
 
 //fonctions des ascenseurs
@@ -99,7 +102,7 @@ void verifMessage(Ascenseur *ascenseur){
 		int m=msgrcv(msgid, &rep, sizeof(MessageEtageDemande) - sizeof(long), 2, IPC_NOWAIT);
 		pthread_mutex_unlock(&mutexMessage);
 		if(m==-1){
-			perror("Erreur réception requete \n");
+			//perror("Erreur réception requete \n");
 
 		}else{
 			printf("res: %ld, %d, %d,\n",rep.type,rep.etageDemande,rep.etageAppuiBtn);
@@ -163,6 +166,7 @@ void voyage(Ascenseur *ascenseur){ // IL FAUDRAIT PEUT ETRE SOCCUPER DE RECEVOIR
 
 			}
 			if(ascenseur->queueEtageAppel->size !=0){
+
 				allerA=front(ascenseur->queueEtageAppel);
 				Dequeue(ascenseur->queueEtageAppel);
 			}
@@ -198,7 +202,7 @@ void test(Ascenseur *ascenseur){
 	Enqueue(ascenseur->queueEtageAppel,3);
 	Dequeue(ascenseur->queueEtageAppel);
 	while(1){
-		//fprintf(stderr,"ascenseur n°%d voyage\n", ascenseur->numAscenseur);
-		fprintf(stderr,"ascenseur n°%d voyage, front queueEtageAppel=%d\n", ascenseur->numAscenseur,front(ascenseur->queueEtageAppel));
+		fprintf(stderr,"ascenseur %d -> msgid %d\n",ascenseur->numAscenseur, ascenseur->msgid);
+		//fprintf(stderr,"ascenseur n°%d voyage, front queueEtageAppel=%d\n", ascenseur->numAscenseur,front(ascenseur->queueEtageAppel));
 	}
 }

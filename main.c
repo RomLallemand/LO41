@@ -48,7 +48,7 @@ int main(int argc,char* argv[]){
 		exit(1);
 	}
   signal(SIGINT,traitantSIGINT);
-  printf("MSGID DANS MAIN : %d\n",msgid);
+  //printf("MSGID DANS MAIN : %d\n",msgid);
   generateClient(1,1,0);//,msgid);
   genererAscenseur(nbA);//,msgid);
 
