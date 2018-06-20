@@ -57,7 +57,7 @@ void sortirAscenseur(){}
 
 void * client(void * args){
 	Client *client=(Client *) args;
-	printf("MSGID *CLIENT(args) : %d\n",client->etageArrive); // urgent PB de pointeur
+	printf("MSGID *CLIENT(args) : %d\n",client->_msgid_); // urgent PB de pointeur
 	appelAscenseur(client);
 	//dort
 	//il est réveillé

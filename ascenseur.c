@@ -88,7 +88,7 @@ void genererAscenseur(int nombre){//,int msgid){
 //fonctions des ascenseurs
 
 void verifMessage(Ascenseur *ascenseur){
-	
+
 	printf("dans rcv\n");
 	//en recupère qu'un seul
 	int i =0;
@@ -106,12 +106,12 @@ void verifMessage(Ascenseur *ascenseur){
 			ascenseur->nbDemandes++;
 			Enqueue(ascenseur->queueEtageAppel,rep.etageAppuiBtn);
 			printf("remplir\n");
-			
+
 		}
 		i++;
-		usleep(1000);	
+		usleep(1000);
 	}
-	
+
 }
 
 void appelerReparateur(Ascenseur* ascenseur){
@@ -151,11 +151,11 @@ void voyage(Ascenseur *ascenseur){ // IL FAUDRAIT PEUT ETRE SOCCUPER DE RECEVOIR
 	//sinon attente a etage actuel
 
 //fin while
-	
+
 	while(1){
 		int allerA;
 		printf("demandes %d:\n",ascenseur->nbDemandes);
-		
+
 		if(ascenseur->nbDemandes < CAPACITE){ // => si pas plein, suit la queue étages demandés
 			verifMessage(ascenseur);
 			while(ascenseur->nbDemandes==0){
