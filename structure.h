@@ -65,11 +65,9 @@ dormirDansAscenseur22,
 dormirDansAscenseur23,
 dormirDansAscenseur24;
 
-pthread_mutex_t ascenseur;
+pthread_cond_t ascenseur;
 
 pthread_cond_t condAscenseur;
-
-
 
 typedef struct {
 	long type;
@@ -82,7 +80,4 @@ typedef struct {
 	int etage;
 } MessageEtage;
 
-int shmid ;
-shmid = shmget(IPC_PRIVATE, 25*sizeof(int), 0666);
-
-int *listeEtageDest=malloc(25*sizeof(int));
+//int shmid = shmget(IPC_PRIVATE, sizeof(int), 0666);
