@@ -3,6 +3,7 @@
 int msgid;
 
 pthread_mutex_t mutexAttenteDansAscenseur=PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t mutexAttente=PTHREAD_MUTEX_INITIALIZER;
 
 pthread_mutex_t mutexMessage=PTHREAD_MUTEX_INITIALIZER;
 
