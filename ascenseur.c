@@ -109,7 +109,7 @@ void verifMessage(Ascenseur *ascenseur){
 			//perror("Erreur réception requete \n");
 
 		}else{
-			printf("res: %ld, %d, %d\n",rep.type,rep.etageDemande,rep.etageAppuiBtn);
+			printf("	Recu un appui bouton à l'étage %d pour aller au %d\n",rep.etageAppuiBtn,rep.etageDemande);
 			ascenseur->nbDemandes++;
 			Enqueue(ascenseur->queueEtageAppel,rep.etageAppuiBtn);
 			//printf("remplir\n");
@@ -160,10 +160,10 @@ void voyage(Ascenseur *ascenseur){ // IL FAUDRAIT PEUT ETRE SOCCUPER DE RECEVOIR
 //fin while
 
 	while(1){
-		printf("Ascenseur arrive à l'étage %d\n",ascenseur->etageActuel);
-		printf("Ascenseur: nbClientDansAscenseur %d\n",ascenseur->nbClientDansAscenseur);
+		printf("		Ascenseur arrive à l'étage %d\n",ascenseur->etageActuel);
+		printf("		%d clients dans l'ascenseur\n",ascenseur->nbClientDansAscenseur);
 
-		printf("demandes %d:\n",ascenseur->nbDemandes);
+		printf("		Demandes %d:\n",ascenseur->nbDemandes);
 		int allerA;
 		verifMessage(ascenseur);
 		//printf("ascenseur->queueEtageAppel->size %d\n",ascenseur->queueEtageAppel->size );
@@ -183,7 +183,7 @@ void voyage(Ascenseur *ascenseur){ // IL FAUDRAIT PEUT ETRE SOCCUPER DE RECEVOIR
 		}else{
 			allerA=chercheUneDestination(ascenseur->etageActuel);
 		}//fin if pour la gestion de la Queue
-		printf("destination courante %d\n",allerA);
+		printf("		Destination courante %d\n",allerA);
 		//on previent les clients en dormance pour qu'ils sortent si c'est leur étage
 		sortirClient(ascenseur);
 
@@ -193,38 +193,27 @@ void voyage(Ascenseur *ascenseur){ // IL FAUDRAIT PEUT ETRE SOCCUPER DE RECEVOIR
 
 		//deplacement
 		if(ascenseur->nbClientDansAscenseur!= 0 && ascenseur->nbDemandes!=0){
-			printf("Ascenseur départ\n");
+			printf("		Ascenseur départ\n");
 		}
-		
+
 		if(ascenseur->etageActuel<allerA){
 			ascenseur->etageActuel++;
-			printf("Ascenseur monte\n");
+			printf("		Ascenseur monte\n");
 
 		}
 		else if(ascenseur->etageActuel>allerA){
 			ascenseur->etageActuel--;
-			printf("Ascenseur descend\n");
+			printf("		Ascenseur descend\n");
 
 		}
 		pthread_mutex_lock(&mutexVariableGlobale);
-		printf("Client arrivés à destination %d\n",clientArriverDest);
+		printf("				Clients arrivés à destination : %d\n",clientArriverDest);
 		pthread_mutex_unlock(&mutexVariableGlobale);
-		printf("--------------------------------------------\n");
+		printf("--------------------------------------------------------------------------\n");
 		usleep(1000000);
 	}//fin du while(1)
 }//fin de la fonction
 
-
-
-void test(Ascenseur *ascenseur){
-	Enqueue(ascenseur->queueEtageAppel,0);
-	Enqueue(ascenseur->queueEtageAppel,3);
-	Dequeue(ascenseur->queueEtageAppel);
-	while(1){
-		fprintf(stderr,"ascenseur %d -> msgid %d\n",ascenseur->numAscenseur, ascenseur->msgid);
-		//fprintf(stderr,"ascenseur n°%d voyage, front queueEtageAppel=%d\n", ascenseur->numAscenseur,front(ascenseur->queueEtageAppel));
-	}
-}
 
 int chercheUneDestination(int etageActuel){
 	for(int i=etageActuel;i<25;i++){
@@ -247,10 +236,10 @@ void enterClient(Ascenseur *ascenseur){
 	//listeEtageDehors[ascenseur->etageActuel]
 	while(ascenseur->nbClientDansAscenseur<CAPACITE && getListeEtageDehors(ascenseur->etageActuel)!=0){
 		if(getListeEtageDehors(ascenseur->etageActuel)==1){
-			printf("Fait entrer le client\n");
+			printf("		Fait entrer le client\n");
 		}
-		else if(getListeEtageDehors(ascenseur->etageActuel)!=0){
-			printf("Fait entrer les clients\n");
+		else if(getListeEtageDehors(ascenseur->etageActuel)>0){
+			printf("		Fait entrer les clients\n");
 		}
 		switch(ascenseur->etageActuel){
 			case 0:	pthread_cond_signal(&dormirAttenteAscenseur0);
@@ -328,15 +317,15 @@ void enterClient(Ascenseur *ascenseur){
 				pthread_cond_signal(&dormirAttenteAscenseur24);
 				break;
 			default:
-				
+
 				break;
 		}//fin switch
 		pthread_mutex_unlock(&mutexAttente);
-		
+
 		pthread_cond_wait(&condAscenseur,&ascenseur_mutex);
 
 		ascenseur->nbClientDansAscenseur++;
-		
+
 	}//fin entrer client
 	//pthread_mutex_unlock(&mutexVariableGlobale);
 
@@ -348,7 +337,12 @@ void sortirClient(Ascenseur* ascenseur){
 	//pthread_mutex_lock(&mutexVariableGlobale);
 	//listeEtageDest[ascenseur->etageActuel]
 	while(getListeEtageDest(ascenseur->etageActuel)>0){
-		printf("Fait sortir les clients\n");
+		if(getListeEtageDehors(ascenseur->etageActuel)==1){
+			printf("		Fait sortir le client\n");
+		}
+		else if(getListeEtageDehors(ascenseur->etageActuel)>1){
+			printf("		Fait sortir les clients\n");
+		}
 		switch(ascenseur->etageActuel){
 			case 0:
 				pthread_cond_signal(&dormirDansAscenseur0);

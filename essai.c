@@ -46,4 +46,47 @@
 			}
 
 		}
-		
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+		////////////////////////////////////////////////////////
+
+
+
+
+
+
+
+
+
+
+
+		void test(Ascenseur *ascenseur){
+			Enqueue(ascenseur->queueEtageAppel,0);
+			Enqueue(ascenseur->queueEtageAppel,3);
+			Dequeue(ascenseur->queueEtageAppel);
+			while(1){
+				fprintf(stderr,"ascenseur %d -> msgid %d\n",ascenseur->numAscenseur, ascenseur->msgid);
+				//fprintf(stderr,"ascenseur n°%d voyage, front queueEtageAppel=%d\n", ascenseur->numAscenseur,front(ascenseur->queueEtageAppel));
+			}
+		}

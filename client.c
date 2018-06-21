@@ -39,7 +39,7 @@ void appelAscenseur(Client* c){
 	msg.etageDemande=c->etageArrive;
 	msg.etageAppuiBtn=c->etageDepart;
 	//printf("msg: %ld, %d, %d,\n",msg.type,msg.etageDemande,msg.etageAppuiBtn);
-
+	printf("Client appui sur bouton à l'étage %d pour aller au %d\n",msg.etageAppuiBtn,msg.etageDemande);
 	if (msgsnd(msgid, &msg, sizeof(MessageEtageDemande) - sizeof(long),0) == -1) {
 	  perror("Erreur d'envoi requete. \n");
 		exit(1);
@@ -242,7 +242,7 @@ void * client(void * args){
 	//sortirAscenseur();
 	printf("Sort de ascenseur\n");
 	pthread_mutex_lock(&mutexVariableGlobale);
-	
+
 	listeEtageDest[client->etageArrive]--;
 	clientArriverDest++;
 	pthread_mutex_unlock(&mutexVariableGlobale);
@@ -297,7 +297,7 @@ void generateClient(int scenario, int nombre, int typeRandom){//, int msgid_){
 						if(pthread_create(&thr[i],NULL,client, &clients[i]))
 							perror("Erreur création threads clients");
 					}
-					 
+
 				}
 				break;
 		default://case completement aléatoire on prend en compte nombre et typeRandom

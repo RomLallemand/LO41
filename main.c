@@ -38,10 +38,10 @@ int main(int argc,char* argv[]){
   char *path = "/tmp";
 
   if (argc-1 != 1) {
-    fprintf(stderr,"Appel : %s <nombre ascenseurs souhaités>\n",argv[1]);
+    fprintf(stderr,"Appel : %s <nombre clients souhaités>\n",argv[1]);
     return 1;
   }
-  int nbA=atoi(argv[1]);
+  int nbC=atoi(argv[1]);
 
   if ((key = ftok(path, 'A')) == -1) {
 		perror("Erreur de creation de la clé \n");
@@ -54,8 +54,8 @@ int main(int argc,char* argv[]){
 	}
   signal(SIGINT,traitantSIGINT);
   //printf("MSGID DANS MAIN : %d\n",msgid);
-  generateClient(2,11,0);//,msgid);
-  genererAscenseur(nbA);//,msgid);
+  generateClient(2,nbC,0);//,msgid);
+  genererAscenseur(1);//,msgid);
 
   while(1){} // sinon on ne voit pas l'affichage de l'ascenseur
 
