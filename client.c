@@ -18,6 +18,7 @@ typedef struct {
 	int etageDepart;
 	int etageArrive;
 	int _msgid_;
+	int heureArrivee;
 } Client;
 
 
@@ -30,6 +31,9 @@ int choixAscenseur(){
 
 }
 
+/*
+Fonction quand un client appelle l'ascenseur. Un message de type 2est envoyé à l'ascenseur avec l'etage actuel et voulu du client.
+*/
 void appelAscenseur(Client* c){
 	pthread_mutex_lock(&mutexMessage);
 	//printf("dans appel\n");
@@ -39,7 +43,7 @@ void appelAscenseur(Client* c){
 	msg.etageDemande=c->etageArrive;
 	msg.etageAppuiBtn=c->etageDepart;
 	//printf("msg: %ld, %d, %d,\n",msg.type,msg.etageDemande,msg.etageAppuiBtn);
-	printf("Client appui sur bouton à l'étage %d pour aller au %d\n",msg.etageAppuiBtn,msg.etageDemande);
+	//printf("Client appui sur bouton à l'étage %d pour aller au %d\n",msg.etageAppuiBtn,msg.etageDemande);
 	if (msgsnd(msgid, &msg, sizeof(MessageEtageDemande) - sizeof(long),0) == -1) {
 	  perror("Erreur d'envoi requete. \n");
 		exit(1);
@@ -54,14 +58,16 @@ void sortirAscenseur(){}
 
 
 
-// pour le thread
-
+/*
+Fonction pour les threads clients de la gestion d'un client de l'appel de l'ascenseur à la descente de la cabine.
+*/
 void * client(void * args){
 	Client *client=(Client *) args;
 	//printf("MSGID *CLIENT(args) : %d\n",client->_msgid_); // urgent PB de pointeur
+	usleep(client->heureArrivee*1000000);
 	appelAscenseur(client);
 	//dort mutex + cond
-	printf("Client attend ascenseur à étage %d\n",client->etageDepart);
+	printf("		Client attend ascenseur à étage %d\n",client->etageDepart);
 	pthread_mutex_lock(&mutexVariableGlobale);
 	listeEtageDehors[client->etageDepart]++;
 	pthread_mutex_unlock(&mutexVariableGlobale);
@@ -146,7 +152,7 @@ void * client(void * args){
 	}
 	//il est réveillé
 	//entre dans ascenseur
-	printf("Entre dans ascenseur\n");
+	printf("		Entre dans ascenseur\n");
 	pthread_mutex_lock(&mutexVariableGlobale);
 	listeEtageDest[client->etageArrive]++;
 	listeEtageDehors[client->etageDepart]--;
@@ -157,7 +163,7 @@ void * client(void * args){
 
 
 	//dort dans l'ascenseur
-	printf("Client dort dans ascenseur\n");
+	printf("		Client dort dans ascenseur\n");
 	switch(client->etageArrive){
 		case 0:	pthread_cond_wait(&dormirDansAscenseur0,&mutexAttenteDansAscenseur);
 			break;
@@ -240,7 +246,7 @@ void * client(void * args){
 
 	//il est réveillé
 	//sortirAscenseur();
-	printf("Sort de ascenseur\n");
+	printf("		Sort de ascenseur\n");
 	pthread_mutex_lock(&mutexVariableGlobale);
 
 	listeEtageDest[client->etageArrive]--;
@@ -252,11 +258,10 @@ void * client(void * args){
 	//usleep(10000000);
 }
 
-
+/*
+Fonction qui génère n clients sous forme de threads. La fonction
+*/
 void generateClient(int scenario, int nombre, int typeRandom){//, int msgid_){
-	//printf("MSGID GENERATECLT : %d\n",msgid);
-
-
 	switch(scenario){
 		case 1:
 				{
@@ -267,8 +272,8 @@ void generateClient(int scenario, int nombre, int typeRandom){//, int msgid_){
 						clients[i].etageDepart=0;
 						clients[i].etageArrive=2;
 						clients[i]._msgid_=msgid;
+						clients[i].heureArrivee=0;
 					}
-					//printf("MSGID GENERATECLT  test : %d\n",(&clients[0])->_msgid_); //OK bon msgid
 					pthread_t thr[nombre];
 					for(int i=0;i<nombre;i++){
 						if(pthread_create(&thr[i],NULL,client, &clients[i]))
@@ -291,6 +296,26 @@ void generateClient(int scenario, int nombre, int typeRandom){//, int msgid_){
 						clients[i].etageDepart=rand()%24;
 						clients[i].etageArrive=rand()%24;
 						clients[i]._msgid_=msgid;
+						clients[i].heureArrivee=0;
+					}
+					pthread_t thr[nombre];
+					for(int i=0;i<nombre;i++){
+						if(pthread_create(&thr[i],NULL,client, &clients[i]))
+							perror("Erreur création threads clients");
+					}
+
+				}
+				break;
+		case 3:
+				{
+					Client* clients;
+					clients=malloc(nombre*sizeof(Client));
+					for(int i=0;i<nombre;i++){
+						clients[i].numClient=i+1;
+						clients[i].etageDepart=rand()%24;
+						clients[i].etageArrive=rand()%24;
+						clients[i]._msgid_=msgid;
+						clients[i].heureArrivee=rand()%15;
 					}
 					pthread_t thr[nombre];
 					for(int i=0;i<nombre;i++){
