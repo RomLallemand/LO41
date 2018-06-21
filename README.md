@@ -4,7 +4,7 @@ Projet LO41 printemps 2018 Ascenseur
 
 Compiler : make dans le terminal
 
-Lancer le programme : ./prgm <nb ascenseurs>
+Lancer le programme : ./prgm <nb client> <scénario>
 
 
 
