@@ -293,8 +293,13 @@ void generateClient(int scenario, int nombre, int typeRandom){//, int msgid_){
 					clients=malloc(nombre*sizeof(Client));
 					for(int i=0;i<nombre;i++){
 						clients[i].numClient=i+1;
-						clients[i].etageDepart=rand()%24;
-						clients[i].etageArrive=rand()%24;
+						int x=rand()%24;
+						clients[i].etageDepart=x;
+						int t=rand()%24;
+						while(t==x){
+							t=rand()%24;						
+						}
+						clients[i].etageArrive=t;
 						clients[i]._msgid_=msgid;
 						clients[i].heureArrivee=0;
 					}
@@ -312,8 +317,13 @@ void generateClient(int scenario, int nombre, int typeRandom){//, int msgid_){
 					clients=malloc(nombre*sizeof(Client));
 					for(int i=0;i<nombre;i++){
 						clients[i].numClient=i+1;
-						clients[i].etageDepart=rand()%24;
-						clients[i].etageArrive=rand()%24;
+						int x=rand()%24;
+						clients[i].etageDepart=x;
+						int t=rand()%24;
+						while(t==x){
+							t=rand()%24;						
+						}
+						clients[i].etageArrive=t;
 						clients[i]._msgid_=msgid;
 						clients[i].heureArrivee=rand()%15;
 					}
