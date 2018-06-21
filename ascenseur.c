@@ -52,7 +52,6 @@ int chercheUneDestination(int);
 //la fonction ascenseur qui sera lancée pour créer un thread
 void * ascenseur(void * args){
 	Ascenseur *ascenseur=(Ascenseur *) args;
-	//printf("A %d\n",ascenseur->numAscenseur);
 	voyage(ascenseur);
 	//test(ascenseur);
 }
@@ -167,13 +166,13 @@ void voyage(Ascenseur *ascenseur){ // IL FAUDRAIT PEUT ETRE SOCCUPER DE RECEVOIR
 		printf("demandes %d:\n",ascenseur->nbDemandes);
 		int allerA;
 		verifMessage(ascenseur);
-		printf("ascenseur->queueEtageAppel->size %d\n",ascenseur->queueEtageAppel->size );
+		//printf("ascenseur->queueEtageAppel->size %d\n",ascenseur->queueEtageAppel->size );
 
 
 		if(ascenseur->queueEtageAppel->size !=0){
 			allerA=front(ascenseur->queueEtageAppel);
 
-			printf("dest: %d\n",allerA);
+			//printf("dest: %d\n",allerA);
 			if(ascenseur->etageActuel==allerA){
 				Dequeue(ascenseur->queueEtageAppel);
 				ascenseur->nbDemandes--;
@@ -184,7 +183,7 @@ void voyage(Ascenseur *ascenseur){ // IL FAUDRAIT PEUT ETRE SOCCUPER DE RECEVOIR
 		}else{
 			allerA=chercheUneDestination(ascenseur->etageActuel);
 		}//fin if pour la gestion de la Queue
-
+		printf("destination courante %d\n",allerA);
 		//on previent les clients en dormance pour qu'ils sortent si c'est leur étage
 		sortirClient(ascenseur);
 
@@ -193,7 +192,10 @@ void voyage(Ascenseur *ascenseur){ // IL FAUDRAIT PEUT ETRE SOCCUPER DE RECEVOIR
 
 
 		//deplacement
-		printf("Ascenseur départ\n");
+		if(ascenseur->nbClientDansAscenseur!= 0 && ascenseur->nbDemandes!=0){
+			printf("Ascenseur départ\n");
+		}
+		
 		if(ascenseur->etageActuel<allerA){
 			ascenseur->etageActuel++;
 			printf("Ascenseur monte\n");
@@ -204,7 +206,11 @@ void voyage(Ascenseur *ascenseur){ // IL FAUDRAIT PEUT ETRE SOCCUPER DE RECEVOIR
 			printf("Ascenseur descend\n");
 
 		}
-		usleep(1000);
+		pthread_mutex_lock(&mutexVariableGlobale);
+		printf("Client arrivés à destination %d\n",clientArriverDest);
+		pthread_mutex_unlock(&mutexVariableGlobale);
+		printf("--------------------------------------------\n");
+		usleep(1000000);
 	}//fin du while(1)
 }//fin de la fonction
 
@@ -222,12 +228,14 @@ void test(Ascenseur *ascenseur){
 
 int chercheUneDestination(int etageActuel){
 	for(int i=etageActuel;i<25;i++){
-		if(listeEtageDest[i]!=0){
+		//listeEtageDest[i]
+		if(getListeEtageDest(i)!=0){
 			return i;
 		}
 	}
 	for(int i=etageActuel;i>=0;i--){
-		if(listeEtageDest[i]!=0){
+		//listeEtageDest[i]
+		if(getListeEtageDest(i)!=0){
 			return i;
 		}
 	}
@@ -235,11 +243,13 @@ int chercheUneDestination(int etageActuel){
 }
 
 void enterClient(Ascenseur *ascenseur){
-	while(ascenseur->nbClientDansAscenseur<CAPACITE && listeEtageDehors[ascenseur->etageActuel]!=0){
-		if(listeEtageDehors[ascenseur->etageActuel]==1){
+	//pthread_mutex_lock(&mutexVariableGlobale);
+	//listeEtageDehors[ascenseur->etageActuel]
+	while(ascenseur->nbClientDansAscenseur<CAPACITE && getListeEtageDehors(ascenseur->etageActuel)!=0){
+		if(getListeEtageDehors(ascenseur->etageActuel)==1){
 			printf("Fait entrer le client\n");
 		}
-		else if(listeEtageDehors[ascenseur->etageActuel]!=0){
+		else if(getListeEtageDehors(ascenseur->etageActuel)!=0){
 			printf("Fait entrer les clients\n");
 		}
 		switch(ascenseur->etageActuel){
@@ -318,22 +328,26 @@ void enterClient(Ascenseur *ascenseur){
 				pthread_cond_signal(&dormirAttenteAscenseur24);
 				break;
 			default:
-
+				
 				break;
 		}//fin switch
 		pthread_mutex_unlock(&mutexAttente);
-		printf("ici\n");
+		
 		pthread_cond_wait(&condAscenseur,&ascenseur_mutex);
-		printf("la\n");
+
 		ascenseur->nbClientDansAscenseur++;
+		
 	}//fin entrer client
+	//pthread_mutex_unlock(&mutexVariableGlobale);
 
 }
 void sortirClient(Ascenseur* ascenseur){
 
 	//libere mutex
 	//condition est mise a true
-	while(listeEtageDest[ascenseur->etageActuel]>0){
+	//pthread_mutex_lock(&mutexVariableGlobale);
+	//listeEtageDest[ascenseur->etageActuel]
+	while(getListeEtageDest(ascenseur->etageActuel)>0){
 		printf("Fait sortir les clients\n");
 		switch(ascenseur->etageActuel){
 			case 0:
@@ -420,4 +434,5 @@ void sortirClient(Ascenseur* ascenseur){
 		ascenseur->nbClientDansAscenseur--;
 	}
 	//fin sorties clients
+	//pthread_mutex_lock(&mutexVariableGlobale);
 }

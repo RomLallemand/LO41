@@ -10,6 +10,7 @@
 #include <sys/sem.h>
 #include <unistd.h>
 #include <pthread.h>
+#include <time.h>
 
 
 typedef struct {
@@ -61,7 +62,9 @@ void * client(void * args){
 	appelAscenseur(client);
 	//dort mutex + cond
 	printf("Client attend ascenseur à étage %d\n",client->etageDepart);
+	pthread_mutex_lock(&mutexVariableGlobale);
 	listeEtageDehors[client->etageDepart]++;
+	pthread_mutex_unlock(&mutexVariableGlobale);
 	switch(client->etageDepart){
 		case 0:	pthread_cond_wait(&dormirAttenteAscenseur0,&mutexAttente);
 			break;
@@ -144,8 +147,10 @@ void * client(void * args){
 	//il est réveillé
 	//entre dans ascenseur
 	printf("Entre dans ascenseur\n");
+	pthread_mutex_lock(&mutexVariableGlobale);
 	listeEtageDest[client->etageArrive]++;
 	listeEtageDehors[client->etageDepart]--;
+	pthread_mutex_unlock(&mutexVariableGlobale);
 	pthread_cond_signal(&condAscenseur);
 	pthread_mutex_unlock(&ascenseur_mutex);
 	//pthread_mutex_lock(&mutexAttente);
@@ -236,7 +241,11 @@ void * client(void * args){
 	//il est réveillé
 	//sortirAscenseur();
 	printf("Sort de ascenseur\n");
+	pthread_mutex_lock(&mutexVariableGlobale);
+	
 	listeEtageDest[client->etageArrive]--;
+	clientArriverDest++;
+	pthread_mutex_unlock(&mutexVariableGlobale);
 	pthread_cond_signal(&condAscenseur);
 	pthread_mutex_unlock(&ascenseur_mutex);
 	//pthread_mutex_lock(&mutexAttenteDansAscenseur);
@@ -271,6 +280,24 @@ void generateClient(int scenario, int nombre, int typeRandom){//, int msgid_){
 					//}
 
 					//free(clients);
+				}
+				break;
+		case 2:
+				{
+					Client* clients;
+					clients=malloc(nombre*sizeof(Client));
+					for(int i=0;i<nombre;i++){
+						clients[i].numClient=i+1;
+						clients[i].etageDepart=rand()%24;
+						clients[i].etageArrive=rand()%24;
+						clients[i]._msgid_=msgid;
+					}
+					pthread_t thr[nombre];
+					for(int i=0;i<nombre;i++){
+						if(pthread_create(&thr[i],NULL,client, &clients[i]))
+							perror("Erreur création threads clients");
+					}
+					 
 				}
 				break;
 		default://case completement aléatoire on prend en compte nombre et typeRandom

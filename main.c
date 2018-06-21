@@ -28,6 +28,7 @@ void traitantSIGINT(int num) {
 
 int main(int argc,char* argv[]){
 
+  srand(time(NULL));
   for(int i =0 ;i<=24; i++){
     listeEtageDest[i]=0;
     listeEtageDehors[i]=0;
@@ -53,7 +54,7 @@ int main(int argc,char* argv[]){
 	}
   signal(SIGINT,traitantSIGINT);
   //printf("MSGID DANS MAIN : %d\n",msgid);
-  generateClient(1,1,0);//,msgid);
+  generateClient(2,11,0);//,msgid);
   genererAscenseur(nbA);//,msgid);
 
   while(1){} // sinon on ne voit pas l'affichage de l'ascenseur

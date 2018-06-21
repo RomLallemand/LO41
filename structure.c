@@ -10,6 +10,8 @@ int msgid;
 pthread_mutex_t mutexAttenteDansAscenseur=PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t mutexAttente=PTHREAD_MUTEX_INITIALIZER;
 
+pthread_mutex_t mutexVariableGlobale=PTHREAD_MUTEX_INITIALIZER;
+
 pthread_mutex_t mutexMessage=PTHREAD_MUTEX_INITIALIZER;
 
 pthread_cond_t attendreDansAscenseur=PTHREAD_COND_INITIALIZER;
@@ -85,3 +87,19 @@ typedef struct {
 
 int listeEtageDest[25];
 int listeEtageDehors[25];
+int clientArriverDest=0;
+
+int getListeEtageDest(int etage){
+	int res;
+	pthread_mutex_lock(&mutexVariableGlobale);
+	res=listeEtageDest[etage];
+	pthread_mutex_unlock(&mutexVariableGlobale);
+	return res;
+}
+int getListeEtageDehors(int etage){
+	int res;
+	pthread_mutex_lock(&mutexVariableGlobale);
+	res=listeEtageDehors[etage];
+	pthread_mutex_unlock(&mutexVariableGlobale);
+	return res;
+}
