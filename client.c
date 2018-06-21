@@ -245,7 +245,7 @@ void * client(void * args){
 
 
 void generateClient(int scenario, int nombre, int typeRandom){//, int msgid_){
-printf("MSGID GENERATECLT : %d\n",msgid);
+	//printf("MSGID GENERATECLT : %d\n",msgid);
 
 
 	switch(scenario){

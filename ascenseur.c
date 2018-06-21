@@ -226,6 +226,11 @@ int chercheUneDestination(int etageActuel){
 			return i;
 		}
 	}
+	for(int i=etageActuel;i>=0;i--){
+		if(listeEtageDest[i]!=0){
+			return i;
+		}
+	}
 	return etageActuel;
 }
 
