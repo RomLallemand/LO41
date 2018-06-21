@@ -1,5 +1,5 @@
 //main.c
-#include "structure.h"
+#include "structure.c"
 #include "client.c"
 #include "ascenseur.c"
 
@@ -28,6 +28,10 @@ void traitantSIGINT(int num) {
 
 int main(int argc,char* argv[]){
 
+  for(int i =0 ;i<=24; i++){
+    listeEtageDest[i]=0;
+    listeEtageDehors[i]=0;
+  }
 
   key_t key;
   char *path = "/tmp";

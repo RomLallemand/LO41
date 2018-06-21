@@ -40,6 +40,9 @@ void appelerReparateur(Ascenseur*);
 void signalArriveeEtage(Ascenseur*);
 void voyage(Ascenseur*);
 void test(Ascenseur*);
+void enterClient(Ascenseur*);
+void sortirClient(Ascenseur*);
+int chercheUneDestination(int);
 
 
 
@@ -49,7 +52,7 @@ void test(Ascenseur*);
 //la fonction ascenseur qui sera lancée pour créer un thread
 void * ascenseur(void * args){
 	Ascenseur *ascenseur=(Ascenseur *) args;
-	printf("A %d\n",ascenseur->numAscenseur);
+	//printf("A %d\n",ascenseur->numAscenseur);
 	voyage(ascenseur);
 	//test(ascenseur);
 }
@@ -94,7 +97,7 @@ void genererAscenseur(int nombre){//,int msgid){
 
 void verifMessage(Ascenseur *ascenseur){
 
-	printf("dans rcv\n");
+	//printf("dans rcv\n");
 
 	int i =0;
 
@@ -107,10 +110,10 @@ void verifMessage(Ascenseur *ascenseur){
 			//perror("Erreur réception requete \n");
 
 		}else{
-			printf("res: %ld, %d, %d,\n",rep.type,rep.etageDemande,rep.etageAppuiBtn);
+			printf("res: %ld, %d, %d\n",rep.type,rep.etageDemande,rep.etageAppuiBtn);
 			ascenseur->nbDemandes++;
 			Enqueue(ascenseur->queueEtageAppel,rep.etageAppuiBtn);
-			printf("remplir\n");
+			//printf("remplir\n");
 
 		}
 		i++;
@@ -158,264 +161,50 @@ void voyage(Ascenseur *ascenseur){ // IL FAUDRAIT PEUT ETRE SOCCUPER DE RECEVOIR
 //fin while
 
 	while(1){
+		printf("Ascenseur arrive à l'étage %d\n",ascenseur->etageActuel);
+		printf("Ascenseur: nbClientDansAscenseur %d\n",ascenseur->nbClientDansAscenseur);
+
 		printf("demandes %d:\n",ascenseur->nbDemandes);
 		int allerA;
 		verifMessage(ascenseur);
+		printf("ascenseur->queueEtageAppel->size %d\n",ascenseur->queueEtageAppel->size );
+
+
 		if(ascenseur->queueEtageAppel->size !=0){
 			allerA=front(ascenseur->queueEtageAppel);
 
 			printf("dest: %d\n",allerA);
-			if(ascenseur->etageActuel==allerA)
+			if(ascenseur->etageActuel==allerA){
 				Dequeue(ascenseur->queueEtageAppel);
-
-			//on previent les clients en dormance pour qu'ils sortent si c'est leur étage
-			//libere mutex
-			//condition est mise a true
-
-			while(listeEtageDest[ascenseur->etageActuel]>0){
-				switch(ascenseur->etageActuel){
-					case 0:
-						pthread_cond_signal(&dormirDansAscenseur0);
-						break;
-					case 1:
-						pthread_cond_signal(&dormirDansAscenseur1);
-						break;
-					case 2:
-						pthread_cond_signal(&dormirDansAscenseur2);
-						break;
-					case 3:
-						pthread_cond_signal(&dormirDansAscenseur3);
-						break;
-					case 4:
-						pthread_cond_signal(&dormirDansAscenseur4);
-						break;
-					case 5:
-						pthread_cond_signal(&dormirDansAscenseur5);
-						break;
-					case 6:
-						pthread_cond_signal(&dormirDansAscenseur6);
-						break;
-					case 7:
-						pthread_cond_signal(&dormirDansAscenseur7);
-						break;
-					case 8:
-						pthread_cond_signal(&dormirDansAscenseur8);
-						break;
-					case 9:
-						pthread_cond_signal(&dormirDansAscenseur9);
-						break;
-					case 10:
-						pthread_cond_signal(&dormirDansAscenseur10);
-						break;
-					case 11:
-						pthread_cond_signal(&dormirDansAscenseur11);
-						break;
-					case 12:
-						pthread_cond_signal(&dormirDansAscenseur12);
-						break;
-					case 13:
-						pthread_cond_signal(&dormirDansAscenseur13);
-						break;
-					case 14:
-						pthread_cond_signal(&dormirDansAscenseur14);
-						break;
-					case 15:
-						pthread_cond_signal(&dormirDansAscenseur15);
-						break;
-					case 16:
-						pthread_cond_signal(&dormirDansAscenseur16);
-						break;
-					case 17:
-						pthread_cond_signal(&dormirDansAscenseur17);
-						break;
-					case 18:
-						pthread_cond_signal(&dormirDansAscenseur18);
-						break;
-					case 19:
-						pthread_cond_signal(&dormirDansAscenseur19);
-						break;
-					case 20:
-						pthread_cond_signal(&dormirDansAscenseur20);
-						break;
-					case 21:
-						pthread_cond_signal(&dormirDansAscenseur21);
-						break;
-					case 22:
-						pthread_cond_signal(&dormirDansAscenseur22);
-						break;
-					case 23:
-						pthread_cond_signal(&dormirDansAscenseur23);
-						break;
-					case 24:
-						pthread_cond_signal(&dormirDansAscenseur24);
-						break;
-					default:
-
-						break;
-				}//fin switch
-				pthread_mutex_unlock(&mutexAttenteDansAscenseur);
-				pthread_cond_wait(&condAscenseur,&ascenseur);
-				ascenseur->nbClientDansAscenseur--;
+				ascenseur->nbDemandes--;
 			}
-			//fin sorties clients
-
-			//faire entrer les clients
-			while(ascenseur->nbClientDansAscenseur<CAPACITE){
-				switch(ascenseur->etageActuel){
-					case 0:	pthread_cond_signal(&dormirAttenteAscenseur0);
-						break;
-					case 1:
-						pthread_cond_signal(&dormirAttenteAscenseur1);
-						break;
-					case 2:
-						pthread_cond_signal(&dormirAttenteAscenseur2);
-						break;
-					case 3:
-						pthread_cond_signal(&dormirAttenteAscenseur3);
-						break;
-					case 4:
-						pthread_cond_signal(&dormirAttenteAscenseur4);
-						break;
-					case 5:
-						pthread_cond_signal(&dormirAttenteAscenseur5);
-						break;
-					case 6:
-						pthread_cond_signal(&dormirAttenteAscenseur6);
-						break;
-					case 7:
-						pthread_cond_signal(&dormirAttenteAscenseur7);
-						break;
-					case 8:
-						pthread_cond_signal(&dormirAttenteAscenseur8);
-						break;
-					case 9:
-						pthread_cond_signal(&dormirAttenteAscenseur9);
-						break;
-					case 10:
-						pthread_cond_signal(&dormirAttenteAscenseur10);
-						break;
-					case 11:
-						pthread_cond_signal(&dormirAttenteAscenseur11);
-						break;
-					case 12:
-						pthread_cond_signal(&dormirAttenteAscenseur12);
-						break;
-					case 13:
-						pthread_cond_signal(&dormirAttenteAscenseur13);
-						break;
-					case 14:
-						pthread_cond_signal(&dormirAttenteAscenseur14);
-						break;
-					case 15:
-						pthread_cond_signal(&dormirAttenteAscenseur15);
-						break;
-					case 16:
-						pthread_cond_signal(&dormirAttenteAscenseur16);
-						break;
-					case 17:
-						pthread_cond_signal(&dormirAttenteAscenseur17);
-						break;
-					case 18:
-						pthread_cond_signal(&dormirAttenteAscenseur18);
-						break;
-					case 19:
-						pthread_cond_signal(&dormirAttenteAscenseur19);
-						break;
-					case 20:
-						pthread_cond_signal(&dormirAttenteAscenseur20);
-						break;
-					case 21:
-						pthread_cond_signal(&dormirAttenteAscenseur21);
-						break;
-					case 22:
-						pthread_cond_signal(&dormirAttenteAscenseur22);
-						break;
-					case 23:
-						pthread_cond_signal(&dormirAttenteAscenseur23);
-						break;
-					case 24:
-						pthread_cond_signal(&dormirAttenteAscenseur24);
-						break;
-					default:
-
-						break;
-				}//fin switch
-				pthread_mutex_unlock(&mutexAttente);
-				pthread_cond_wait(&condAscenseur,&ascenseur);
-				ascenseur->nbClientDansAscenseur++;
-			}//fin entrer client
 
 
+
+		}else{
+			allerA=chercheUneDestination(ascenseur->etageActuel);
 		}//fin if pour la gestion de la Queue
 
+		//on previent les clients en dormance pour qu'ils sortent si c'est leur étage
+		sortirClient(ascenseur);
+
+		//faire entrer les clients
+		enterClient(ascenseur);
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/*
-//recuère le mutex
-		if(ascenseur->nbDemandes < CAPACITE){ // => si pas plein, suit la queue étages demandés
-
-			while(ascenseur->nbDemandes==0){
-				//fprintf(stderr,"Ascenseur n°%d en attente à l'étage %d | %d/%d\n",ascenseur->numAscenseur,ascenseur->etageActuel,ascenseur->nbDemandes,CAPACITE);
-
-			}
-
-			if(ascenseur->queueEtageAppel->size !=0){
-
-				allerA=front(ascenseur->queueEtageAppel);
-				Dequeue(ascenseur->queueEtageAppel);
-			}
-
-
-
+		//deplacement
+		printf("Ascenseur départ\n");
+		if(ascenseur->etageActuel<allerA){
+			ascenseur->etageActuel++;
+			printf("Ascenseur monte\n");
 
 		}
-		else if(ascenseur->nbDemandes == CAPACITE){ // => si plein, dépose au premier étage demandé
-			if(ascenseur->queueEtageAppel->size !=0){
-				allerA=front(ascenseur->queueEtageAppel);
-				Dequeue(ascenseur->queueEtageAppel);
-			}
-
-			if(ascenseur->etageActuel!=allerA){
-				if(ascenseur->etageActuel<allerA){
-					ascenseur->etageActuel++;
-				}
-				else if(ascenseur->etageActuel>allerA){
-					ascenseur->etageActuel--;
-				}
-
-			}
-			verifMessage(ascenseur);
-
-		}
-
-//on change d'étage
-		if(ascenseur->etageActuel!=allerA){
-			if(ascenseur->etageActuel<allerA){
-				ascenseur->etageActuel++;
-			}
-			else if(ascenseur->etageActuel>allerA){
-				ascenseur->etageActuel--;
-			}
+		else if(ascenseur->etageActuel>allerA){
+			ascenseur->etageActuel--;
+			printf("Ascenseur descend\n");
 
 		}
 		usleep(1000);
-*/
 	}//fin du while(1)
 }//fin de la fonction
 
@@ -429,4 +218,201 @@ void test(Ascenseur *ascenseur){
 		fprintf(stderr,"ascenseur %d -> msgid %d\n",ascenseur->numAscenseur, ascenseur->msgid);
 		//fprintf(stderr,"ascenseur n°%d voyage, front queueEtageAppel=%d\n", ascenseur->numAscenseur,front(ascenseur->queueEtageAppel));
 	}
+}
+
+int chercheUneDestination(int etageActuel){
+	for(int i=etageActuel;i<25;i++){
+		if(listeEtageDest[i]!=0){
+			return i;
+		}
+	}
+	return etageActuel;
+}
+
+void enterClient(Ascenseur *ascenseur){
+	while(ascenseur->nbClientDansAscenseur<CAPACITE && listeEtageDehors[ascenseur->etageActuel]!=0){
+		if(listeEtageDehors[ascenseur->etageActuel]==1){
+			printf("Fait entrer le client\n");
+		}
+		else if(listeEtageDehors[ascenseur->etageActuel]!=0){
+			printf("Fait entrer les clients\n");
+		}
+		switch(ascenseur->etageActuel){
+			case 0:	pthread_cond_signal(&dormirAttenteAscenseur0);
+				break;
+			case 1:
+				pthread_cond_signal(&dormirAttenteAscenseur1);
+				break;
+			case 2:
+				pthread_cond_signal(&dormirAttenteAscenseur2);
+				break;
+			case 3:
+				pthread_cond_signal(&dormirAttenteAscenseur3);
+				break;
+			case 4:
+				pthread_cond_signal(&dormirAttenteAscenseur4);
+				break;
+			case 5:
+				pthread_cond_signal(&dormirAttenteAscenseur5);
+				break;
+			case 6:
+				pthread_cond_signal(&dormirAttenteAscenseur6);
+				break;
+			case 7:
+				pthread_cond_signal(&dormirAttenteAscenseur7);
+				break;
+			case 8:
+				pthread_cond_signal(&dormirAttenteAscenseur8);
+				break;
+			case 9:
+				pthread_cond_signal(&dormirAttenteAscenseur9);
+				break;
+			case 10:
+				pthread_cond_signal(&dormirAttenteAscenseur10);
+				break;
+			case 11:
+				pthread_cond_signal(&dormirAttenteAscenseur11);
+				break;
+			case 12:
+				pthread_cond_signal(&dormirAttenteAscenseur12);
+				break;
+			case 13:
+				pthread_cond_signal(&dormirAttenteAscenseur13);
+				break;
+			case 14:
+				pthread_cond_signal(&dormirAttenteAscenseur14);
+				break;
+			case 15:
+				pthread_cond_signal(&dormirAttenteAscenseur15);
+				break;
+			case 16:
+				pthread_cond_signal(&dormirAttenteAscenseur16);
+				break;
+			case 17:
+				pthread_cond_signal(&dormirAttenteAscenseur17);
+				break;
+			case 18:
+				pthread_cond_signal(&dormirAttenteAscenseur18);
+				break;
+			case 19:
+				pthread_cond_signal(&dormirAttenteAscenseur19);
+				break;
+			case 20:
+				pthread_cond_signal(&dormirAttenteAscenseur20);
+				break;
+			case 21:
+				pthread_cond_signal(&dormirAttenteAscenseur21);
+				break;
+			case 22:
+				pthread_cond_signal(&dormirAttenteAscenseur22);
+				break;
+			case 23:
+				pthread_cond_signal(&dormirAttenteAscenseur23);
+				break;
+			case 24:
+				pthread_cond_signal(&dormirAttenteAscenseur24);
+				break;
+			default:
+
+				break;
+		}//fin switch
+		pthread_mutex_unlock(&mutexAttente);
+		printf("ici\n");
+		pthread_cond_wait(&condAscenseur,&ascenseur_mutex);
+		printf("la\n");
+		ascenseur->nbClientDansAscenseur++;
+	}//fin entrer client
+
+}
+void sortirClient(Ascenseur* ascenseur){
+
+	//libere mutex
+	//condition est mise a true
+	while(listeEtageDest[ascenseur->etageActuel]>0){
+		printf("Fait sortir les clients\n");
+		switch(ascenseur->etageActuel){
+			case 0:
+				pthread_cond_signal(&dormirDansAscenseur0);
+				break;
+			case 1:
+				pthread_cond_signal(&dormirDansAscenseur1);
+				break;
+			case 2:
+				pthread_cond_signal(&dormirDansAscenseur2);
+				break;
+			case 3:
+				pthread_cond_signal(&dormirDansAscenseur3);
+				break;
+			case 4:
+				pthread_cond_signal(&dormirDansAscenseur4);
+				break;
+			case 5:
+				pthread_cond_signal(&dormirDansAscenseur5);
+				break;
+			case 6:
+				pthread_cond_signal(&dormirDansAscenseur6);
+				break;
+			case 7:
+				pthread_cond_signal(&dormirDansAscenseur7);
+				break;
+			case 8:
+				pthread_cond_signal(&dormirDansAscenseur8);
+				break;
+			case 9:
+				pthread_cond_signal(&dormirDansAscenseur9);
+				break;
+			case 10:
+				pthread_cond_signal(&dormirDansAscenseur10);
+				break;
+			case 11:
+				pthread_cond_signal(&dormirDansAscenseur11);
+				break;
+			case 12:
+				pthread_cond_signal(&dormirDansAscenseur12);
+				break;
+			case 13:
+				pthread_cond_signal(&dormirDansAscenseur13);
+				break;
+			case 14:
+				pthread_cond_signal(&dormirDansAscenseur14);
+				break;
+			case 15:
+				pthread_cond_signal(&dormirDansAscenseur15);
+				break;
+			case 16:
+				pthread_cond_signal(&dormirDansAscenseur16);
+				break;
+			case 17:
+				pthread_cond_signal(&dormirDansAscenseur17);
+				break;
+			case 18:
+				pthread_cond_signal(&dormirDansAscenseur18);
+				break;
+			case 19:
+				pthread_cond_signal(&dormirDansAscenseur19);
+				break;
+			case 20:
+				pthread_cond_signal(&dormirDansAscenseur20);
+				break;
+			case 21:
+				pthread_cond_signal(&dormirDansAscenseur21);
+				break;
+			case 22:
+				pthread_cond_signal(&dormirDansAscenseur22);
+				break;
+			case 23:
+				pthread_cond_signal(&dormirDansAscenseur23);
+				break;
+			case 24:
+				pthread_cond_signal(&dormirDansAscenseur24);
+				break;
+			default:
+
+				break;
+		}//fin switch
+		pthread_mutex_unlock(&mutexAttenteDansAscenseur);
+		pthread_cond_wait(&condAscenseur,&ascenseur_mutex);
+		ascenseur->nbClientDansAscenseur--;
+	}
+	//fin sorties clients
 }

@@ -31,7 +31,7 @@ int choixAscenseur(){
 
 void appelAscenseur(Client* c){
 	pthread_mutex_lock(&mutexMessage);
-	printf("dans appel\n");
+	//printf("dans appel\n");
 
 	MessageEtageDemande msg;
 	msg.type=2;
@@ -60,7 +60,8 @@ void * client(void * args){
 	//printf("MSGID *CLIENT(args) : %d\n",client->_msgid_); // urgent PB de pointeur
 	appelAscenseur(client);
 	//dort mutex + cond
-
+	printf("Client attend ascenseur à étage %d\n",client->etageDepart);
+	listeEtageDehors[client->etageDepart]++;
 	switch(client->etageDepart){
 		case 0:	pthread_cond_wait(&dormirAttenteAscenseur0,&mutexAttente);
 			break;
@@ -144,13 +145,14 @@ void * client(void * args){
 	//entre dans ascenseur
 	printf("Entre dans ascenseur\n");
 	listeEtageDest[client->etageArrive]++;
-	listeEtage[client->etageDepart]--;
-	pthread_mutex_unlock(&ascenseur);
+	listeEtageDehors[client->etageDepart]--;
+	pthread_cond_signal(&condAscenseur);
+	pthread_mutex_unlock(&ascenseur_mutex);
 	//pthread_mutex_lock(&mutexAttente);
 
 
-	//dort
-
+	//dort dans l'ascenseur
+	printf("Client dort dans ascenseur\n");
 	switch(client->etageArrive){
 		case 0:	pthread_cond_wait(&dormirDansAscenseur0,&mutexAttenteDansAscenseur);
 			break;
@@ -235,7 +237,8 @@ void * client(void * args){
 	//sortirAscenseur();
 	printf("Sort de ascenseur\n");
 	listeEtageDest[client->etageArrive]--;
-	pthread_mutex_unlock(&ascenseur);
+	pthread_cond_signal(&condAscenseur);
+	pthread_mutex_unlock(&ascenseur_mutex);
 	//pthread_mutex_lock(&mutexAttenteDansAscenseur);
 	//usleep(10000000);
 }
