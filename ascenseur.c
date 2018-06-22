@@ -60,9 +60,9 @@ void * ascenseur(void * args){
 //genere les ascenseurs avec les semaphores et mutex
 void genererAscenseur(int nombre){//,int msgid){
 	int i,j;
-	Ascenseur* ascenseurs;
-	ascenseurs=malloc(nombre*sizeof(Ascenseur));
-	//Ascenseur ascenseurs[nombre];
+	//Ascenseur* ascenseurs;
+	//ascenseurs=malloc(nombre*sizeof(Ascenseur));
+	Ascenseur ascenseurs[nombre];
 	for(i=0;i<nombre;i++){
 		ascenseurs[i].numAscenseur=i;
 		ascenseurs[i].etat=0;
@@ -161,7 +161,7 @@ void voyage(Ascenseur *ascenseur){ // IL FAUDRAIT PEUT ETRE SOCCUPER DE RECEVOIR
 
 	while(1){
 		printf("Ascenseur arrive à l'étage %d\n",ascenseur->etageActuel);
-		printf("%d clients dans l'ascenseur\n",ascenseur->nbClientDansAscenseur);
+		printf("%d/%d clients dans l'ascenseur\n",ascenseur->nbClientDansAscenseur,CAPACITE);
 
 		printf("Demandes restantes %d:\n",ascenseur->nbDemandes);
 		int allerA;

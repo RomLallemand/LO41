@@ -246,7 +246,7 @@ void * client(void * args){
 
 	//il est réveillé
 	//sortirAscenseur();
-	printf("		Sort de ascenseur\n");
+	printf("		Client %d sort de ascenseur\n",client->numClient);
 	pthread_mutex_lock(&mutexVariableGlobale);
 
 	listeEtageDest[client->etageArrive]--;
@@ -259,9 +259,9 @@ void * client(void * args){
 }
 
 /*
-Fonction qui génère n clients sous forme de threads. La fonction
+Fonction qui génère n clients sous forme de threads.
 */
-void generateClient(int scenario, int nombre, int typeRandom){//, int msgid_){
+void generateClient(int scenario, int nombre, int typeRandom){
 	switch(scenario){
 		case 1:
 				{
